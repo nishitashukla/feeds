@@ -11,6 +11,15 @@ class FeedsViewModel
 {
     var feedsClient : FeedsClientProtocol
     
+    
+    //Save list of feeds to update in table view
+    private var cellViewModels: [FeedsListCellModel] = [FeedsListCellModel]()
+
+    var numberOfCells: Int
+    {
+        return cellViewModels.count             // Number of cells for tableview
+    }
+    
     //MARK: Initialize Feeds Client
     init(_feedsClient: FeedsClientProtocol = FeedsClient(_httpClient: HTTPClient()))
     {
@@ -40,9 +49,46 @@ class FeedsViewModel
         {
             return
         }
-        
+        var arrCellModels = [FeedsListCellModel]() //Temp Array
         for feed in feeds {
-            print(feed.feed?.feedTitle)
+            arrCellModels.append(createCellViewModel(feed: feed))
         }
+        
+        self.cellViewModels = arrCellModels
+    }
+    
+    func getCellViewModel( at indexPath: IndexPath ) -> FeedsListCellModel
+    {
+        return cellViewModels[indexPath.row]
+    }
+    
+    private func createCellViewModel( feed: Datum ) -> FeedsListCellModel
+    {
+        var attachmentURL = ""
+        var attachmentTitle = ""
+        var attachmentBody = ""
+        
+        if let attachments = feed.feed?.attachment
+        {
+            for attachment in attachments {
+                attachmentURL = attachment.imageMain?.src ?? ""
+                attachmentTitle = attachment.title ?? ""
+                attachmentBody = attachment.body ?? ""
+            }
+        }
+    
+        return FeedsListCellModel(
+            title: feed.feed?.feedTitle ?? "NA",
+            body:feed.feed?.body ?? "",
+            feedType:feed.feed?.type ?? "",
+            owner_image: feed.feed?.object?.imageNormal ?? "",
+            owner_title: feed.feed?.object?.ownerTitle ?? "",
+            created_date: feed.feed?.object?.creationDate ?? "",
+            likes_count: feed.feed?.object?.likeCount ?? 0,
+            comment_count: feed.feed?.object?.commentCount ?? 0,
+            attachment_image: attachmentURL,
+            attachment_title: attachmentTitle,
+            attachment_body: attachmentBody
+        )
     }
 }
